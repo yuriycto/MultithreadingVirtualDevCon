@@ -55,6 +55,7 @@ namespace rt
         }
 
         private static Guid? DummyRefIdGetter(PXCache cache, object obj) => Guid.NewGuid();
+        // Since Acumatica needs guid for persisting to database, we need Guid.NewGuid
 
         private static IEnumerable SelectHandler()
         {

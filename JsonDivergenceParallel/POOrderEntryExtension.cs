@@ -8,6 +8,24 @@ namespace JsonDivergenceParallel
 {
     public class POOrderEntryExtension : PXGraphExtension<POOrderEntry>
     {
+        public PXAction<POOrder> CachingSamples;
+
+        [PXButton(CommitChanges = true)]
+        [PXUIField(DisplayName = "Caching sample", MapEnableRights = PXCacheRights.Update,
+            MapViewRights = PXCacheRights.Update)]
+        protected void cachingSamples()
+        {
+            PXDatabase.Subscribe<POSetup>(() => // This is low level, and maybe experimental feature. So use it at your own risk
+            {
+                POOrderChanged();
+            }, "someUniqueKey");
+        }
+
+        private void POOrderChanged()
+        {
+            PXTrace.WriteInformation("something changed");
+        }
+
         // Define the button action
         public PXAction<POOrder> SerializePOOrder;
 
@@ -15,9 +33,11 @@ namespace JsonDivergenceParallel
         [PXUIField(DisplayName = "Serialize PO to JSON (Newtonsoft 10.0.3)", MapEnableRights = PXCacheRights.Update, MapViewRights = PXCacheRights.Update)]
         protected void serializePOOrder()
         {
+
             // Output storage for the serialized JSON result
             string jsonOutput = null;
             object lockthis = new object();
+            POOrder currentOrder = Base.Document.Current;
 
             try
             {
@@ -37,7 +57,7 @@ namespace JsonDivergenceParallel
                     MethodInfo serializeMethod = jsonConvertType.GetMethod("SerializeObject", new Type[] { typeof(object) });
 
                     // Get the current POOrder object from the graph
-                    POOrder currentOrder = Base.Document.Current;
+
 
                     // Ensure the current order exists
                     if (currentOrder != null)
@@ -60,6 +80,10 @@ namespace JsonDivergenceParallel
                 // Start and join the thread
                 thread.Start();
                 thread.Join();
+
+                // If you use threads, and you don't use Acumatica framework, then maybe technical validation will be passed
+                // Thread will not have access to PXContext, Database context, resources, etc.
+
             }
             catch (Exception e)
             {

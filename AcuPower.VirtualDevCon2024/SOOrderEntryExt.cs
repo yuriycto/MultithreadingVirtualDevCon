@@ -212,6 +212,39 @@ namespace AcuPower.VirtualDevCon2024
                 options.BatchSize = 1;
                 options.IsEnabled = true;
                 options.SplitToBatches = (_, _) => SplitProcess(count);
+                // SplitToBatches makes Acumatica to ignore BatchSize 
+                // Acumatica will take element one by one, and will execute them in one thread.
+
+                /*
+                   0	0
+                   0	0
+                   0	0
+                   0	0
+                   0	0
+                   0	0
+                   0	0
+                   0	0
+                   0	0
+                   0	0
+                 */
+                //each of 0   0 will get it's own thread, it works fine, because we have the same data over everything.
+
+                //Acumatica may have logic like this
+
+                /*
+                 Assume we have two cores
+                   0	9 - it may be on the core 1
+                   10	19 - it may be core 2
+                   20	29 - it may be on the core 1 or 2, depending, which core will become available
+                   30	39 - 
+                   40	49
+                   
+                 *
+                 */
+
+
+
+
             };
         }
 
